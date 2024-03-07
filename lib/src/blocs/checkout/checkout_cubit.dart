@@ -13,6 +13,16 @@ part 'checkout_state.dart';
 class CheckoutCubit extends Cubit<CheckoutState> {
   CheckoutCubit() : super(CheckoutInitial());
 
+  Future<void> payDue(Order order, String invoiceNum) async {
+    emit(CheckoutLoading());
+    try {
+      await SalesService.payDue(order, invoiceNum);
+      emit(CheckoutSuccess());
+    } on DioError catch (_) {
+      emit(CheckoutError("Something went wrong"));
+      return;
+    }
+  }
   Future<int?> getSalesNum() async {
     try {
       Map<String, dynamic> salesNumMap = await SalesService.getNumberOfSales();
@@ -72,10 +82,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       return;
     }
   }
-  Future<void> createSalesOrder(Order input, String date) async {
+  Future<void> createSalesOrder(Order input, String invoiceNum, int validity) async {
     emit(CheckoutLoading());
     try {
-      await SalesService.createSalesOrder(input, date);
+      await SalesService.createSalesOrder(input, invoiceNum, validity);
+      await SalesService.payDue(input, invoiceNum);
       emit(CheckoutSuccess());
     } on DioError catch (_) {
       emit(CheckoutError("Something went wrong"));

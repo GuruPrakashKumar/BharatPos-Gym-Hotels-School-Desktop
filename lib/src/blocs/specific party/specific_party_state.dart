@@ -2,16 +2,16 @@
 import 'package:shopos/src/models/input/order.dart';
 import 'package:shopos/src/models/party.dart';
 
+import '../../models/activeMembership_model.dart';
+
 abstract class SpecificPartyState {}
 
 class SpecificPartyInitial extends SpecificPartyState {}
 
 class SpecificPartyListRender extends SpecificPartyState {
-  final List<Order> specificparty;
-  final Party partyDetails;
+  final List<ActiveMembershipModel> activeMemberships;
   SpecificPartyListRender({
-    required this.specificparty,
-    required this.partyDetails,
+    required this.activeMemberships,
   });
 }
 

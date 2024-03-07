@@ -11,7 +11,8 @@ class Party {
       this.type,
       this.balance,
       this.address,
-      this.modeOfPayment});
+        this.guardianName,
+        this.modeOfPayment});
 
   String? name;
   String? phoneNumber;
@@ -21,11 +22,25 @@ class Party {
   DateTime? createdAt;
   String? type;
   String? v;
+  String? guardianName;
   double? totalCreditAmount;
   double? totalSettleAmount;
   double? total;
   double? balance;
 
+  factory Party.fromMapTemp(Map<String, dynamic> json, double due) => Party(
+      name: json["name"],
+      phoneNumber: json["phoneNumber"].toString(),
+      id: json["_id"],
+      type: json['type'],
+      createdAt: DateTime.parse(json["createdAt"]),
+      guardianName: json['guardianName'],
+      balance: due.toDouble(),
+      address: json["address"],
+      totalCreditAmount: 0,
+      totalSettleAmount: 0,
+      total: 0
+  );
   factory Party.fromMap(Map<String, dynamic> json) => Party(
         name: json["name"],
         phoneNumber: json["phoneNumber"].toString(),
@@ -37,6 +52,7 @@ class Party {
         balance: json['balance']!=null? double.parse(json['balance'].toString())  : 0.0,
         total: json['total']!=null? double.parse(json['total'].toString())  : 0.0,
         address: json["address"],
+        guardianName: json['guardianName'],
         v: json["__v"].toString(),
       );
 
@@ -45,6 +61,7 @@ class Party {
         "phoneNumber": phoneNumber,
         "_id": id,
         'type': type,
+        'guardianName': guardianName,
         "createdAt": createdAt?.toIso8601String(),
         "modeOfPayment": modeOfPayment,
         "amount": total,

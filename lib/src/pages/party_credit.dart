@@ -19,15 +19,19 @@ import 'package:shopos/src/widgets/custom_button.dart';
 import 'package:pin_code_fields/pin_code_fields.dart' as pinCode;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/membershipPlan_model.dart';
 import '../widgets/pin_validation.dart';
+import 'checkout.dart';
 
 class ScreenArguments {
   final String partyId;
   final String partName;
+  final String? partyAddress;
+  final String? guardianName;
   final String partyContactNo;
   final int tabbarNo;
 
-  ScreenArguments(this.partyId, this.partName, this.partyContactNo, this.tabbarNo);
+  ScreenArguments(this.partyId, this.partName, this.partyContactNo, this.tabbarNo,this.guardianName, this.partyAddress);
 }
 
 class PartyCreditPage extends StatefulWidget {
@@ -58,7 +62,12 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
   }
 
   void fetchdata() async {
-    widget.args.tabbarNo == 0 ? _specificpartyCubit.getInitialCreditHistory(widget.args.partyId) : _specificpartyCubit.getInitialpurchasedHistory(widget.args.partyId);
+    print("line 60 in party_credit");
+    // widget.args.tabbarNo == 0 ? _specificpartyCubit.getInitialCreditHistory(widget.args.partyId) : _specificpartyCubit.getInitialpurchasedHistory(widget.args.partyId);
+    widget.args.tabbarNo == 0
+        ? _specificpartyCubit.getAllActiveMembership(widget.args.partyId)
+        : _specificpartyCubit.getAllActiveMembership(widget.args.partyId);
+    print("line 62 in party_credit");
 
     final response = await UserService.me();
     user = User.fromMap(response.data['user']);
@@ -94,8 +103,8 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
   }
 
   TextEditingController value = TextEditingController();
-  String balanceToShareOnWhatsapp = "";
-  bool whatsappButtonPresssed = false;
+  // String balanceToShareOnWhatsapp = "";
+  bool whatsappButtonPressed = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,24 +132,6 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
           ],
         ),
         centerTitle: true,
-        actions: [
-          GestureDetector(
-              onTap: () {
-                whatsappButtonPresssed = true;
-                setState(() {});
-                Future.delayed(Duration(seconds: 3), () {
-                  _launchUrl(user!.businessName!, "+91" + widget.args.partyContactNo);
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Image.asset(
-                  "assets/images/whats.png",
-                  height: 30,
-                  width: 30,
-                ),
-              ))
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.only(left: 12, right: 12),
@@ -148,62 +139,187 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
           bloc: _specificpartyCubit,
           builder: (context, state) {
             if (state is SpecificPartyListRender) {
-              final orders = state.specificparty;
+              final activeMemberships = state.activeMemberships;
 
-              return ListView.builder(
+              return GridView.builder(
+                gridDelegate:
+                SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, mainAxisExtent: 280),
                 physics: const BouncingScrollPhysics(),
                 shrinkWrap: true,
-                reverse: true,
-                itemCount: orders.length,
+                // reverse: true,
+                itemCount: activeMemberships.length,
                 itemBuilder: (BuildContext context, int index) {
-                  sort(orders);
-                  final order = orders[index];
+                  // sort(orders);
+                  final activeMem = activeMemberships[index];
 
-                  return Column(
-                    children: [
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 15),
-                          child: currentdate(order.createdAt!),
-                        ),
-                      ),
-                      Align(
-                        alignment: order.modeOfPayment?[0]["mode"] == "Settle" ? Alignment.centerLeft : Alignment.centerRight,
-                        child: SizedBox(
-                          height: 50,
-                          width: 111,
-                          child: GestureDetector(
-                            onLongPress: () async {
-                              HapticFeedback.vibrate();
-                              if(order.orderItems!.isEmpty){
-                                await openEditModal(order.objId!, order.total!, order.createdAt.toString(), order.modeOfPayment!, context);
-                              }else{
-                                locator<GlobalServices>().infoSnackBar("You cannot edit sale order");
-                              }
-                            },
-                            child: Card(
-                              clipBehavior: Clip.hardEdge,
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(color: order.modeOfPayment?[0]['mode'] == "Settle" ? Colors.green : Colors.red, width: 0.5),
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              elevation: 0,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                  return Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Padding(
+                      padding: EdgeInsets.all(14),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 9,
                                 child: Text(
-                                  " ₹ ${order.modeOfPayment?.firstWhere((mode) => mode['mode'] == 'Credit', orElse: () => {'amount': order.total})['amount']}",
-                                  style: TextStyle(
-                                    color: order.modeOfPayment?[0]['mode'] == "Settle" ? Colors.green : Colors.red,
-                                    fontSize: 20,
-                                  ),
-                                  textAlign: TextAlign.center,
+                                  "${activeMem.membership?.plan}",
+                                  textAlign: TextAlign.left,
+                                  style: Theme.of(context).textTheme.headline6,
                                 ),
                               ),
-                            ),
+                              Expanded(
+                                flex: 3,
+                                child: GestureDetector(
+                                    onTap: () {
+                                      //this varibale is used to  show the circular progress indicator  when button is pressed
+                                      // whatsappButtonPressed = true;
+                                      setState(() {});
+                                      Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            _launchUrl(
+                                                user!.businessName!,
+                                                "+91" +
+                                                    widget.args.partyContactNo,
+                                                activeMem.due!);
+                                          });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Image.asset(
+                                        "assets/images/whats.png",
+                                        height: 30,
+                                        width: 30,
+                                      ),
+                                    )),
+                              ),
+                            ],
                           ),
-                        ),
+                          const SizedBox(
+                            height: 3,
+                          ),
+                          Container(
+                            color: Colors.black,
+                            height: 1,
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                "Plan validity: ",
+                                style:
+                                TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${activeMem.membership!.validity}",
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                "Last Paid: ",
+                                style:
+                                TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${currentdate(activeMem.lastPaid!)}",
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                "Active Membership validity: ",
+                                style:
+                                TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${activeMem.validity}",
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                "Active status: ",
+                                style:
+                                TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${activeMem.activeStatus}",
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            children: [
+                              Text("Due: ",style:TextStyle(fontWeight: FontWeight.bold),),
+                              Text(
+                                "${activeMem.due}",
+                              )
+                            ],
+                          ),
+                          if(activeMem.due!>0)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Container(
+                                  child: CustomButton(
+                                    minimumWidth: 200,
+                                    fontSize: 16,
+                                      paddingOutside: 0,
+                                      title: "Pay Due",
+                                      onTap: () {
+                                        _onTotalChange(activeMem.membership!, activeMem.due?.toStringAsFixed(2));
+                                        Order order = Order(
+                                            orderItems: [
+                                              OrderItemInput(
+                                                  quantity: 1,
+                                                  price: activeMem.due,
+                                                  membership: activeMem.membership)
+                                            ],
+                                            party: Party(
+                                                id: widget.args.partyId,
+                                                name: widget.args.partName,
+                                                phoneNumber:
+                                                widget.args.partyContactNo,
+                                                type: "customer",
+                                                address:
+                                                widget.args.partyAddress,
+                                                guardianName:
+                                                widget.args.guardianName)
+                                          //todo: for bill like businessName etc (we have not sufficient data here for now)
+                                        );
+                                        Navigator.pushNamed(
+                                            context, CheckoutPage.routeName,
+                                            arguments: CheckoutPageArgs(
+                                                invoiceType: OrderType.sale,
+                                                order: order,
+                                                payDue: true));
+                                      }),
+                                ),
+                              ],
+                            )
+                        ],
                       ),
-                    ],
+                    ),
                   );
                 },
               );
@@ -216,160 +332,161 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
           },
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 100,
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: Container(
-          height: 150,
-          width: double.maxFinite,
-          decoration: const BoxDecoration(border: Border(top: BorderSide(color: Colors.black12))),
-          child: SingleChildScrollView(
-            reverse: true,
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                BlocBuilder<SpecificPartyCubit, SpecificPartyState>(
-                  bloc: _specificpartyCubit,
-                  builder: (context, state) {
-                    int balance = 0;
-                    int negbalance = 0;
-                    if (state is SpecificPartyListRender) {
-                      balance = state.partyDetails.balance == null ? 0 : (state.partyDetails.balance as double).toInt();
-                      negbalance = balance * -1;
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 20),
-                      child: balance >= 0
-                          ? Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                const Text(
-                                  "Balance Due",
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Text(
-                                  "₹ ${balance.toStringAsFixed(2)}",
-                                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 20),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                const Text(
-                                  "Balance Advance",
-                                  textScaleFactor: 1.7,
-                                ),
-                                Text(
-                                  "${negbalance.toStringAsFixed(2)}",
-                                  textScaleFactor: 1.7,
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    );
-                  },
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)), side: BorderSide(color: Colors.green, width: 1)),
-                      color: Color.fromRGBO(148, 255, 194, 100),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: TextButton(
-                          onPressed: () {
-                            modelOpen(context, "Settle");
-                          },
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                "assets/images/recieve.png",
-                                height: 22,
-                              ),
-                              const Text(
-                                "Received",
-                                style: TextStyle(color: Color.fromRGBO(32, 150, 82, 100), fontSize: 19),
-                              ),
-                            ],
-                          ),
-                          style: ButtonStyle(
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                              ),
-                            ),
-                            backgroundColor: MaterialStateProperty.all(
-                              const Color.fromRGBO(255, 0, 0, 0),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Card(
-                      color: Color.fromRGBO(255, 209, 209, 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)), side: BorderSide(color: Colors.red, width: 1)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: TextButton(
-                          onPressed: () {
-                            modelOpen(context, "Credit");
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 15,
-                              ),
-                              Image.asset(
-                                "assets/images/given.png",
-                                height: 22,
-                              ),
-                              const Text(
-                                "Given",
-                                style: TextStyle(color: Colors.red, fontSize: 19),
-                              ),
-                              SizedBox(
-                                width: 15,
-                              ),
-                            ],
-                          ),
-                          style: ButtonStyle(
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                              const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                              ),
-                            ),
-                            backgroundColor: MaterialStateProperty.all(
-                              const Color.fromRGBO(255, 0, 0, 0),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
+      // bottomNavigationBar: BottomAppBar(
+      //   elevation: 100,
+      //   color: Theme.of(context).scaffoldBackgroundColor,
+      //   child: Container(
+      //     height: 150,
+      //     width: double.maxFinite,
+      //     decoration: const BoxDecoration(border: Border(top: BorderSide(color: Colors.black12))),
+      //     child: SingleChildScrollView(
+      //       reverse: true,
+      //       padding: const EdgeInsets.only(bottom: 20),
+      //       child: Column(
+      //         mainAxisSize: MainAxisSize.max,
+      //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //         children: [
+      //           BlocBuilder<SpecificPartyCubit, SpecificPartyState>(
+      //             bloc: _specificpartyCubit,
+      //             builder: (context, state) {
+      //               int balance = 0;
+      //               int negbalance = 0;
+      //               if (state is SpecificPartyListRender) {
+      //                 balance = state.partyDetails.balance == null ? 0 : (state.partyDetails.balance as double).toInt();
+      //                 negbalance = balance * -1;
+      //               }
+      //               return Padding(
+      //                 padding: const EdgeInsets.only(left: 20),
+      //                 child: balance >= 0
+      //                     ? Row(
+      //                         crossAxisAlignment: CrossAxisAlignment.center,
+      //                         mainAxisAlignment: MainAxisAlignment.start,
+      //                         children: [
+      //                           SizedBox(
+      //                             width: 10,
+      //                           ),
+      //                           const Text(
+      //                             "Balance Due",
+      //                             style: TextStyle(fontSize: 20),
+      //                           ),
+      //                           SizedBox(
+      //                             width: 10,
+      //                           ),
+      //                           Text(
+      //                             "₹ ${balance.toStringAsFixed(2)}",
+      //                             style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 20),
+      //                           ),
+      //                         ],
+      //                       )
+      //                     : Row(
+      //                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //                         children: [
+      //                           const Text(
+      //                             "Balance Advance",
+      //                             textScaleFactor: 1.7,
+      //                           ),
+      //                           Text(
+      //                             "${negbalance.toStringAsFixed(2)}",
+      //                             textScaleFactor: 1.7,
+      //                             style: const TextStyle(
+      //                               color: Colors.green,
+      //                               fontWeight: FontWeight.bold,
+      //                             ),
+      //                           ),
+      //                         ],
+      //                       ),
+      //               );
+      //             },
+      //           ),
+      //           Row(
+      //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //             children: [
+      //               Card(
+      //                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)), side: BorderSide(color: Colors.green, width: 1)),
+      //                 color: Color.fromRGBO(148, 255, 194, 100),
+      //                 child: Padding(
+      //                   padding: const EdgeInsets.all(10),
+      //                   child: TextButton(
+      //                     onPressed: () {
+      //                       modelOpen(context, "Settle");
+      //                     },
+      //                     child: Row(
+      //                       children: [
+      //                         Image.asset(
+      //                           "assets/images/recieve.png",
+      //                           height: 22,
+      //                         ),
+      //                         const Text(
+      //                           "Received",
+      //                           style: TextStyle(color: Color.fromRGBO(32, 150, 82, 100), fontSize: 19),
+      //                         ),
+      //                       ],
+      //                     ),
+      //                     style: ButtonStyle(
+      //                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+      //                         const RoundedRectangleBorder(
+      //                           borderRadius: BorderRadius.all(Radius.circular(10)),
+      //                         ),
+      //                       ),
+      //                       backgroundColor: MaterialStateProperty.all(
+      //                         const Color.fromRGBO(255, 0, 0, 0),
+      //                       ),
+      //                     ),
+      //                   ),
+      //                 ),
+      //               ),
+      //               Card(
+      //                 color: Color.fromRGBO(255, 209, 209, 10),
+      //                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)), side: BorderSide(color: Colors.red, width: 1)),
+      //                 child: Padding(
+      //                   padding: const EdgeInsets.all(10),
+      //                   child: TextButton(
+      //                     onPressed: () {
+      //                       modelOpen(context, "Credit");
+      //                     },
+      //                     child: Row(
+      //                       mainAxisAlignment: MainAxisAlignment.center,
+      //                       children: [
+      //                         SizedBox(
+      //                           width: 15,
+      //                         ),
+      //                         Image.asset(
+      //                           "assets/images/given.png",
+      //                           height: 22,
+      //                         ),
+      //                         const Text(
+      //                           "Given",
+      //                           style: TextStyle(color: Colors.red, fontSize: 19),
+      //                         ),
+      //                         SizedBox(
+      //                           width: 15,
+      //                         ),
+      //                       ],
+      //                     ),
+      //                     style: ButtonStyle(
+      //                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+      //                         const RoundedRectangleBorder(
+      //                           borderRadius: BorderRadius.all(Radius.circular(10)),
+      //                         ),
+      //                       ),
+      //                       backgroundColor: MaterialStateProperty.all(
+      //                         const Color.fromRGBO(255, 0, 0, 0),
+      //                       ),
+      //                     ),
+      //                   ),
+      //                 ),
+      //               ),
+      //             ],
+      //           )
+      //         ],
+      //       ),
+      //     ),
+      //   ),
+      // ),
     );
   }
 
+  /*
 // add settle and credit
   modelOpen(context, String modeofPayment) {
     return showModalBottomSheet(
@@ -543,10 +660,10 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
           ],
         )).show();
   }
-
-  Future<void> _launchUrl(String name, String mobile) async {
+   */
+  Future<void> _launchUrl(String name, String mobile, double due) async {
     String Message =
-        "Dear customer, your credit balance with ${name} is rupees ${double.parse(balanceToShareOnWhatsapp).abs().toStringAsFixed(2)}. Please pay the amount as soon as possible. Thank you for your business.%0A%0A*Powered by BharatPOS*";
+        "Dear customer, your credit balance with ${name} is rupees ${due.abs().toStringAsFixed(2)}. Please pay the amount as soon as possible. Thank you for your business.%0A%0A*Powered by BharatPOS*";
 
     final Uri _url = Uri.parse('https://wa.me/${mobile}?text=$Message');
 
@@ -556,8 +673,25 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
       throw Exception('Could not launch $_url');
     }
   }
+  _onTotalChange(MembershipPlanModel membership, String? discountedPrice) {
+    membership.sellingPrice = double.parse(discountedPrice!);
+    // print(product.gstRate);
 
-  Widget currentdate(DateTime createdAt) {
+    double newBasePrice = (membership.sellingPrice! * 100.0) / (100.0 + double.parse(membership.gstRate == 'null' ? '0.0' : membership.gstRate!));
+
+    membership.basePrice = newBasePrice.toString();
+
+    double newGst = membership.sellingPrice! - newBasePrice;
+
+    membership.igst = newGst.toStringAsFixed(2);
+
+    membership.cgst = (newGst / 2).toStringAsFixed(2);
+    // print(product.salecgst);
+
+    membership.sgst = (newGst / 2).toStringAsFixed(2);
+    // print(product.salesgst);
+  }
+  String currentdate(DateTime createdAt) {
     var datereq = DateFormat.MMMM().format(createdAt);
 
     final String _inputTime = '${createdAt.hour}:${createdAt.minute}';
@@ -574,10 +708,11 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
     } else {
       pmAmFlag = "AM";
     }
-    return Text(
-      '${createdAt.day.toString()}.${createdAt.month.toString()}.${createdAt.year.toString()} | $outputTime',
-      style: const TextStyle(color: Colors.black45, fontSize: 13),
-    );
+    // return Text(
+    //   '${createdAt.day.toString()}.${createdAt.month.toString()}.${createdAt.year.toString()} | $outputTime',
+    //   style: const TextStyle(color: Colors.black45, fontSize: 13),
+    // );
+    return '${createdAt.day.toString()}.${createdAt.month.toString()}.${createdAt.year.toString()} | $outputTime';
   }
 
 }

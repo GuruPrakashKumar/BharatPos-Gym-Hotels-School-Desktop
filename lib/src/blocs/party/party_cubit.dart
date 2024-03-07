@@ -65,12 +65,16 @@ class PartyCubit extends Cubit<PartyState> {
   Future<void> getMyParties() async {
     emit(PartyLoading());
     try {
-      final response = await _partyService.getParties();
+      final response = await _partyService.getAllDues();
       final parties = List.generate(
-        response.data['allParty'].length,
-        (i) => Party.fromMap(response.data['allParty'][i]),
+        response.data['dues'].length,
+            (i) => Party.fromMapTemp(response.data['dues'][i]['party'], response.data['dues'][i]['totalDues'].toDouble()),
       );
-      return emit(PartyListRender(parties));
+      final resp = await _partyService.getParties();
+      print("response.data while getting the parties: ${resp.data}");
+      final inactiveParties = List.generate(resp.data['allParty'].length,
+              (i) => Party.fromMap(resp.data['allParty'][i]));
+      return emit(PartyListRender(parties, inactiveParties));
     } catch (err) {
       emit(PartyError("Error fetching parties"));
     }

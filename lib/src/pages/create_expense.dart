@@ -89,7 +89,7 @@ class _CreateExpensePageState extends State<CreateExpensePage> {
               bloc: _expenseCubit,
               builder: (context, state) {
                 bool isLoading = false;
-                if (state is ProductLoading) {
+                if (state is ExpenseLoading) {
                   isLoading = true;
                 }
                 return Stack(

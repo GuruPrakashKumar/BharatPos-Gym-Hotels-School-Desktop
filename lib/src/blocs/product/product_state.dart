@@ -1,26 +1,26 @@
 part of 'product_cubit.dart';
 
 @immutable
-abstract class ProductState {}
+abstract class MembershipState {}
 
-class ProductInitial extends ProductState {}
+class MembershipInitial extends MembershipState {}
 
-class ProductsListRender extends ProductState {
-  final List<Product> products;
-  ProductsListRender(this.products);
+class MembershipListRender extends MembershipState {
+  final List<MembershipPlanModel> memberships;
+  MembershipListRender(this.memberships);
 }
 
-class ProductLoading extends ProductState {}
+class MembershipLoading extends MembershipState {}
 
-class ProductCreated extends ProductState {}
+class MembershipCreated extends MembershipState {}
 
-class ProductCreationFailed extends ProductState {}
+class MembershipCreationFailed extends MembershipState {}
 
-class gstincludeoptionenable extends ProductState {}
+class gstincludeoptionenable extends MembershipState {}
 
-class calculateallgst extends ProductState {}
+class calculateallgst extends MembershipState {}
 
-class ProductsError extends ProductState {
+class MembershipError extends MembershipState {
   final String message;
-  ProductsError(this.message);
+  MembershipError(this.message);
 }

@@ -28,51 +28,62 @@ Future<void> generatePdf({
   double nettotal = 0;
   final pdf = pw.Document();
 
-  List<String> address = user.address.toString().split(',');
+  // List<String> address = user.address.toString().split(',');
+  // print(user.address);
+  String address = user.address.toString().split(', ').join('\n');
+  address = address.replaceAll('}', '');
+  address = address.replaceAll('{', '');
+  print("gstIn   is ${user.dlNum}");
 
   final List<pw.Row> tableRows = [];
   bool expirydateAvailableFlag = false;
   bool hsnAvailableFlag = false;
   bool mrpAvailableFlag = false;
+  // Order.orderItems!.forEach((element) {
+  //   if (element.product!.expiryDate != null &&
+  //       element.product!.expiryDate != "null" &&
+  //       element.product!.expiryDate != "") {
+  //     expirydateAvailableFlag = true;
+  //   }
+  //   if (element.product!.hsn != null &&
+  //       element.product!.hsn != "null" &&
+  //       element.product!.hsn != "") {
+  //     hsnAvailableFlag = true;
+  //   }
+  //   if (element.product!.mrp != null &&
+  //       element.product!.mrp != "null" &&
+  //       element.product!.mrp != "") {
+  //     mrpAvailableFlag = true;
+  //   }
+  // });
+  bool atLeastOneItemHaveGST = false;
   Order.orderItems!.forEach((element) {
-    if (element.product!.expiryDate != null &&
-        element.product!.expiryDate != "null" &&
-        element.product!.expiryDate != "") {
-      expirydateAvailableFlag = true;
-    }
-    if (element.product!.hsn != null &&
-        element.product!.hsn != "null" &&
-        element.product!.hsn != "") {
-      hsnAvailableFlag = true;
-    }
-    if (element.product!.mrp != null &&
-        element.product!.mrp != "null" &&
-        element.product!.mrp != "") {
-      mrpAvailableFlag = true;
+    if (element.membership!.gstRate != "null") {
+      print(element.membership?.toMap());
+      atLeastOneItemHaveGST = true;
     }
   });
-
   for (var data in Order.orderItems!) {
     double basePrice = 0.0;
     String gstrate = '';
 
     if (gstType == 'WithoutGST') {
       if (orderType == OrderType.sale) {
-        basePrice = data.product!.sellingPrice!;
+        basePrice = data.membership!.sellingPrice!;
       } else {
         basePrice = data.product!.purchasePrice.toDouble();
       }
     } else {
       if (orderType == OrderType.sale || orderType==OrderType.estimate || orderType==OrderType.saleReturn) {
-        if (data.product!.gstRate == "null") {
-          basePrice = data.product!.sellingPrice!.toDouble();
+        if (data.membership!.gstRate == "null") {
+          basePrice = data.membership!.sellingPrice!.toDouble();
           gstrate = "NA";
         } else {
-          basePrice = double.parse(data.product!.baseSellingPriceGst!);
-          gstrate = data.product!.gstRate!;
+          basePrice = double.parse(data.membership!.basePrice!);
+          gstrate = data.membership!.gstRate!;
         }
       } else {
-        if (data.product!.gstRate == "null" &&
+        if (data.membership!.gstRate == "null" &&
             data.product!.purchasePrice != 0) {
           basePrice = data.product!.purchasePrice.toDouble();
           gstrate = "NA";
@@ -93,78 +104,83 @@ Future<void> generatePdf({
     PdfColor pdfColor = PdfColor.fromInt(1);
     PdfColor pdfColor2 = PdfColor.fromInt(0xFF808080);
     final tableRow = pw.Row(
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         pw.Container(
-          width: 50,
+          width: 100,
           child: pw.Text(
-              (data.product!.name! + "                              ")
+              (data.membership!.plan! + "                              ")
                   .substring(0, 30),
               style: TextStyle(fontSize: 10)),
         ),
-        SizedBox(width: 10),
-        Container(
-          width: 20,
-          child: pw.Text(data.quantity.toString(),
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
-        ),
-        expirydateAvailableFlag?
-          data.product!.expiryDate != null
-        ? Row(
-          children:[
-            SizedBox(width: 10),
-            Container(
-              width: 55,
-              child: pw.Text('${data.product!.expiryDate!.day}/${data.product!.expiryDate!.month}/${data.product!.expiryDate!.year}',
-                  textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
-            )
-          ]
-        )
-        : SizedBox(width: 65):SizedBox.shrink(),
-        hsnAvailableFlag? data.product!.hsn != null
-        ? Row(
-            children:[
-              SizedBox(width: 10),
-              Container(
-                width: 50,
-                child: pw.Text('${data.product!.hsn}',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
-              )
-            ]
-        ): SizedBox(width: 60):SizedBox.shrink(),
-        mrpAvailableFlag? data.product!.mrp != null && data.product!.mrp!="null"
-            ? Row(
-            children:[
-              SizedBox(width: 10),
-              Container(
-                width: 50,
-                child: pw.Text('${data.product!.mrp}',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
-              )
-            ]
-        ): SizedBox(width: 60):SizedBox.shrink(),
         SizedBox(width: 20),
         Container(
-            width: 70,
-            child: pw.Text('$basePrice', style: TextStyle(fontSize: 10))),
-        SizedBox(width: 10),
-        gstType == 'WithoutGST'
-            ? SizedBox()
-            : (data.product!.gstRate == 'null'
+          width: 70,
+          child: pw.Text(data.membership!.validity.toString(),
+               style: TextStyle(fontSize: 10)),
+        ),
+        // expirydateAvailableFlag?
+        //   data.product!.expiryDate != null
+        // ? Row(
+        //   children:[
+        //     SizedBox(width: 10),
+        //     Container(
+        //       width: 55,
+        //       child: pw.Text('${data.product!.expiryDate!.day}/${data.product!.expiryDate!.month}/${data.product!.expiryDate!.year}',
+        //           textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
+        //     )
+        //   ]
+        // )
+        // : SizedBox(width: 65):SizedBox.shrink(),
+        // hsnAvailableFlag? data.product!.hsn != null
+        // ? Row(
+        //     children:[
+        //       SizedBox(width: 10),
+        //       Container(
+        //         width: 50,
+        //         child: pw.Text('${data.product!.hsn}',
+        //             textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
+        //       )
+        //     ]
+        // ): SizedBox(width: 60):SizedBox.shrink(),
+        // mrpAvailableFlag? data.product!.mrp != null && data.product!.mrp!="null"
+        //     ? Row(
+        //     children:[
+        //       SizedBox(width: 10),
+        //       Container(
+        //         width: 50,
+        //         child: pw.Text('${data.product!.mrp}',
+        //             textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
+        //       )
+        //     ]
+        // ): SizedBox(width: 60):SizedBox.shrink(),
+        if(atLeastOneItemHaveGST)
+        Row(
+          children: [
+            SizedBox(width: 20),
+            Container(
+                width: 70,
+                child: pw.Text('${basePrice.toStringAsFixed(2)}', style: TextStyle(fontSize: 10))),
+            SizedBox(width: 10),
+            gstType == 'WithoutGST'
+                ? SizedBox()
+                : (data.membership!.gstRate == 'null'
                 ? Container(
-            width: 50,
-            child: pw.Text("N/A",
-                style: TextStyle(fontSize: 10)))
+                width: 50,
+                child: pw.Text("N/A",
+                    style: TextStyle(fontSize: 10)))
                 : Container(
-                    width: 50,
-                    child: pw.Text(data.product!.saleigst!,
-                        style: TextStyle(fontSize: 10)))),
-        SizedBox(width: 10),
+                width: 50,
+                child: pw.Text(data.membership!.igst!,
+                    style: TextStyle(fontSize: 10)))),
+          ]
+        ),
+        SizedBox(width: 40),
         orderType == OrderType.sale || orderType == OrderType.estimate || orderType == OrderType.saleReturn
             ? Container(
                 width: 50,
                 child: pw.Text(
-                    '${(data.quantity) * (data.product?.sellingPrice ?? 0)}',
+                    '${(data.membership?.sellingPrice ?? 0)}',
                     style: TextStyle(fontSize: 10)))
             : Container(
                 width: 50,
@@ -229,19 +245,21 @@ Future<void> generatePdf({
                 pw.Text('$companyName',
                     style:
                         TextStyle(font: ttf, fontWeight: pw.FontWeight.bold)),
-                pw.Text('${address[0].replaceAll('{', '')}',
+                pw.Text('${address}',
                     style: TextStyle(font: ttf)),
-                pw.Text('${address[1].replaceAll(' ', '')}',
-                    style: TextStyle(font: ttf)),
-                pw.Text('${address[2].replaceAll(' ', '')}',
-                    style: TextStyle(font: ttf)),
-                pw.Text('${address[3].replaceAll('}', '').replaceAll(' ', '')}',
-                    style: TextStyle(font: ttf)),
+                // pw.Text('${address[1].replaceAll(' ', '')}',
+                //     style: TextStyle(font: ttf)),
+                // pw.Text('${address[2].replaceAll(' ', '')}',
+                //     style: TextStyle(font: ttf)),
+                // pw.Text('${address[3].replaceAll('}', '').replaceAll(' ', '')}',
+                //     style: TextStyle(font: ttf)),
                 pw.Text('Email: ${user.email}', style: TextStyle(font: ttf)),
-                pw.Text('Phone: ${user.phoneNumber}',
-                    style: TextStyle(font: ttf)),
-                pw.Text('DL Number: ${user.dlNum == "null" || user.dlNum==null ? user.dlNum="": user.dlNum}',
-                    style: TextStyle(font: ttf)),
+                pw.Text('Phone: ${user.phoneNumber}',style: TextStyle(font: ttf)),
+                //todo: if gstin and dlnum is not there it will not be shown
+                // if(atLeastOneItemHaveGST)
+                // pw.Text('GSTIN: ${user.GstIN}',style: TextStyle(font: ttf)),
+                // pw.Text('DL Number: ${user.dlNum == "null" || user.dlNum==null ? user.dlNum="": user.dlNum}',
+                //     style: TextStyle(font: ttf)),
               ]),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 if ((Order.reciverName != "" &&
@@ -267,38 +285,38 @@ Future<void> generatePdf({
                       ],
                     ),
                   ),
-                if (Order.businessName != "" &&
-                    Order.businessName != null)
-                  pw.RichText(
-                    text: pw.TextSpan(
-                      style: pw.TextStyle(font: ttf),
-                      children: [
-                        pw.TextSpan(text: 'Business Name: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                        pw.TextSpan(text: Order.businessName.toString()),
-                      ],
-                    ),
-                  ),
+                // if (Order.businessName != "" &&
+                //     Order.businessName != null)
+                //   pw.RichText(
+                //     text: pw.TextSpan(
+                //       style: pw.TextStyle(font: ttf),
+                //       children: [
+                //         pw.TextSpan(text: 'Business Name: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                //         pw.TextSpan(text: Order.businessName.toString()),
+                //       ],
+                //     ),
+                //   ),
                 if (Order.businessAddress != "" &&
                     Order.businessAddress != null)
                   pw.RichText(
                     text: pw.TextSpan(
                       style: pw.TextStyle(font: ttf),
                       children: [
-                        pw.TextSpan(text: 'Business Add.: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                        pw.TextSpan(text: 'Receiver Add.: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                         pw.TextSpan(text: Order.businessAddress.toString()),
                       ],
                     ),
                   ),
-                if (Order.gst != "" && Order.gst != null)
-                  pw.RichText(
-                    text: pw.TextSpan(
-                      style: pw.TextStyle(font: ttf),
-                      children: [
-                        pw.TextSpan(text: 'GSTIN: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 10)),
-                        pw.TextSpan(text: Order.gst.toString()),
-                      ],
-                    ),
-                  ),
+                // if (Order.gst != "" && Order.gst != null)
+                //   pw.RichText(
+                //     text: pw.TextSpan(
+                //       style: pw.TextStyle(font: ttf),
+                //       children: [
+                //         pw.TextSpan(text: 'GSTIN: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 10)),
+                //         pw.TextSpan(text: Order.gst.toString()),
+                //       ],
+                //     ),
+                //   ),
                 if (dlNum != "" && dlNum != null)
                   pw.RichText(
                     text: pw.TextSpan(
@@ -314,15 +332,15 @@ Future<void> generatePdf({
 
         pw.SizedBox(height: 20),
         pw.Divider(thickness: 1, color: pdfColor2),
-        pw.Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+        pw.Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           pw.Container(
-            width: 50,
+            width: 100,
             child: pw.Text('Name'),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 20),
           pw.Container(
-            width: 30,
-            child: pw.Text('Qty'),
+            width: 70,
+            child: pw.Text('Validity (days)'),
           ),
           if(expirydateAvailableFlag)
           SizedBox(width: 10),
@@ -345,16 +363,21 @@ Future<void> generatePdf({
               width: 50,
               child: pw.Text('MRP'),
             ),
-          SizedBox(width: 10),
-          pw.Container(
-            width: 70,
-            child: pw.Text('Rate/Unit'),
+          if(atLeastOneItemHaveGST)
+          Row(
+            children: [
+              SizedBox(width: 20),
+              pw.Container(
+                width: 70,
+                child: pw.Text('Taxable Value'),
+              ),
+              SizedBox(width: 10),
+              gstType == 'WithoutGST'
+                  ? Container()
+                  : Container(width: 50, child: pw.Text('GST/Unit')),
+            ]
           ),
-          SizedBox(width: 10),
-          gstType == 'WithoutGST'
-              ? Container()
-              : Container(width: 50, child: pw.Text('GST/Unit')),
-          SizedBox(width: 10),
+          SizedBox(width: 40),
           Container(width: 50, child: pw.Text('Amount'))
         ]),
         pw.Divider(thickness: 1, color: pdfColor2),

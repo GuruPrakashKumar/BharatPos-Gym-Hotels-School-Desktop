@@ -33,7 +33,7 @@ class _PartyListPageState extends State<PartyListPage>
   @override
   void initState() {
     super.initState();
-    _partyCubit = PartyCubit()..getInitialCreditParties();
+    _partyCubit = PartyCubit()..getMyParties();
     _tabController = TabController(length: 2, vsync: this);
     _typeAheadController = TextEditingController();
   }
@@ -63,10 +63,10 @@ class _PartyListPageState extends State<PartyListPage>
                 _tabController.index == 0 ? 'customer' : 'supplier';
             final result = await Navigator.pushNamed(
                 context, CreatePartyPage.routeName,
-                arguments: CreatePartyArguments("", "", "", "", partyType));
+                arguments: CreatePartyArguments("", "", "", "", "", partyType));
             if (result is bool) {
               if (result) {
-                _partyCubit.getInitialCreditParties();
+                _partyCubit.getMyParties();
               }
             }
           },
@@ -126,7 +126,7 @@ class _PartyListPageState extends State<PartyListPage>
                     onTap: () {
                       Navigator.pushNamed(context, PartyCreditPage.routeName,
                           arguments: ScreenArguments(party.id!, party.name!,
-                              party.phoneNumber!, _tabController.index));
+                              party.phoneNumber!, _tabController.index, party.guardianName, party.address));
                     },
                   );
                 },
@@ -140,9 +140,9 @@ class _PartyListPageState extends State<PartyListPage>
                   bloc: _partyCubit,
                   builder: (context, state) {
                     // print(state.toString());
-                    if (state is CreditPartiesListRender) {
-                      final salesParties = state.saleParties;
-                      final purchaseParties = state.purchaseParties;
+                    if (state is PartyListRender) {
+                      final salesParties = state.parties;
+                      final allParties = state.inactiveParties;
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -157,12 +157,10 @@ class _PartyListPageState extends State<PartyListPage>
                             // <-- Your TabBar
                             tabs: const [
                               Tab(
-                                
-                                text: "Customer",
-                                
+                                text: "Active",
                               ),
                               Tab(
-                                text: "Supplier",
+                                text: "All",
                               ),
                             ],
                           ),
@@ -177,7 +175,7 @@ class _PartyListPageState extends State<PartyListPage>
                                   partyCubit: _partyCubit,
                                 ),
                                 PartiesListView(
-                                  parties: purchaseParties,
+                                  parties: allParties,
                                   tabno: 1,
                                   partyCubit: _partyCubit,
                                 ),
@@ -211,8 +209,7 @@ class _PartyListPageState extends State<PartyListPage>
     final type = _tabController.index == 0 ? 'customer' : 'supplier';
 
     try {
-      final response =
-          await const PartyService().getSearch(pattern, type: type);
+      final response = await const PartyService().getSearch(pattern, type: 'customer');
       final data = response.data['allParty'] as List<dynamic>;
       return data.map((e) => Party.fromMap(e));
     } catch (err) {
@@ -262,20 +259,24 @@ class _PartiesListViewState extends State<PartiesListView> {
               Text(party.name ?? ""),
             ],
           ),
-          trailing: party.balance! >= 0
-              ? Text(
-                  " ₹ ${ party.balance!.toStringAsFixed(2)}",
-                  style: TextStyle(color: Colors.red),
-                )
-              : Text(
-                  " ₹ ${party.balance!.toStringAsFixed(2)}",
-                  style: TextStyle(color: Colors.green),
-                ), //here when api will be fixed then we will get the correct value
+          trailing: widget.tabno == 0 ?
+            party.balance! >= 0
+                ? Text(
+              " ₹ ${ party.balance!.toStringAsFixed(2)}",
+              style: TextStyle(color: const Color.fromRGBO(244, 67, 54, 1)),
+            )
+                : Text(
+              " ₹ ${party.balance!.abs().toStringAsFixed(2)}",
+              style: TextStyle(color: Colors.green),
+            )
+                : SizedBox.shrink(),
           onTap: () async {
             await Navigator.pushNamed(context, PartyCreditPage.routeName,
                 arguments: ScreenArguments(
-                    party.id!, party.name!, party.phoneNumber!, widget.tabno));
-            widget.partyCubit.getInitialCreditParties();
+                    party.id!, party.name!, party.phoneNumber!, widget.tabno, party.guardianName, party.address));
+            // widget.partyCubit.getInitialCreditParties();
+            widget.partyCubit.getMyParties();
+
           },
           onLongPress: () {
             showModal(party, context, widget.tabno);
@@ -307,9 +308,10 @@ class _PartiesListViewState extends State<PartiesListView> {
                 if (result == true) {
                   await Navigator.pushNamed(context, CreatePartyPage.routeName,
                       arguments: CreatePartyArguments(_party.id!, _party.name!,
-                          _party.phoneNumber!, _party.address!, _partyType));
+                          _party.phoneNumber!,_party.guardianName ?? "", _party.address!, _partyType));
                   Navigator.pop(context);
-                  widget.partyCubit.getInitialCreditParties();
+                  // widget.partyCubit.getInitialCreditParties();
+                  widget.partyCubit.getMyParties();
                 }
               },
             ),

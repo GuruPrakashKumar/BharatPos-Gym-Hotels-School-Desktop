@@ -1,6 +1,7 @@
 import 'package:shopos/src/models/product.dart';
 import 'package:shopos/src/pages/checkout.dart';
 
+import '../membershipPlan_model.dart';
 import '../party.dart';
 import '../user.dart';
 
@@ -113,11 +114,12 @@ class Order {
 }
 
 class OrderItemInput {
-  OrderItemInput({this.price = 0, this.quantity = 0, this.product, this.saleSGST, this.saleCGST, this.baseSellingPrice, this.saleIGST, this.discountAmt = "0", this.originalbaseSellingPrice = ""});
+  OrderItemInput({this.price = 0, this.quantity = 0, this.product, this.saleSGST, this.saleCGST, this.baseSellingPrice, this.saleIGST, this.discountAmt = "0", this.originalbaseSellingPrice = "", this.membership});
 
   double? price;
   double quantity;
   Product? product;
+  MembershipPlanModel? membership;
   String? saleSGST;
   String? saleCGST;
   String? baseSellingPrice;
@@ -128,6 +130,7 @@ class OrderItemInput {
   factory OrderItemInput.fromMap(Map<String, dynamic> json) => OrderItemInput(
       price: double.parse(json['price'].toString()) ?? 0,
       quantity: json['quantity']!= null? json['quantity'].toDouble() : 0.0,
+      membership: json['membership'] is Map ? MembershipPlanModel.fromMap(json['membership']) : null,
       product: json["product"] is Map ? Product.fromMap(json["product"]) : null,
       saleCGST: json["saleCGST"].toString(),
       saleSGST: json["saleSGST"].toString(),
@@ -161,17 +164,21 @@ class OrderItemInput {
 
     return map;
   }
-  Map<String, dynamic> toSaleMap() => {
-        "price": (product?.sellingPrice ?? 1),
-        "quantity": quantity,
-        "product": product?.id,
-        "saleCGST": product?.salecgst == 'null' ? '0' : product!.salecgst,
-        "saleSGST": product?.salesgst == 'null' ? '0' : product!.salesgst,
-        "baseSellingPrice": product?.baseSellingPriceGst == 'null' ? '0' : product!.baseSellingPriceGst,
-        "saleIGST": product?.saleigst == 'null' ? '0' : product!.saleigst,
-        "discountAmt": discountAmt,
-        "originalbaseSellingPrice": (double.parse(product!.baseSellingPriceGst! == "null" ? '0' : product!.baseSellingPriceGst!) + double.parse(discountAmt!)).toString()
-      };
+  Map<String, dynamic> toSaleMap() {
+
+    Map<String,dynamic> map= {
+      "price": (membership?.sellingPrice ?? 1),
+      "quantity": 1,
+      // "product": "",
+      "membership": membership?.id,
+      "saleCGST": membership?.cgst == 'null' ? '0' : membership!.cgst,
+      "saleSGST": membership?.sgst == 'null' ? '0' : membership!.sgst,
+      "baseSellingPrice": membership?.basePrice == 'null' ? '0' : membership!.basePrice,
+      "saleIGST": membership?.igst == 'null' ? '0' : membership!.igst,
+      "discountAmt": discountAmt,
+      "originalbaseSellingPrice": (double.parse(membership!.basePrice! == "null" ? '0' : membership!.basePrice!) + double.parse(discountAmt!)).toString()};
+    return map;
+  }
 
   Map<String, dynamic> toSaleReturnMap() => {
         "price": (product?.sellingPrice ?? 1),

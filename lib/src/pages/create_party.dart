@@ -14,8 +14,9 @@ class CreatePartyArguments {
   final String partyContactNo;
   final String partyAddress;
   final String partyType;
+  final String guardianName;
 
-  CreatePartyArguments(this.partyId, this.partName, this.partyContactNo,
+  CreatePartyArguments(this.partyId, this.partName, this.partyContactNo, this.guardianName,
       this.partyAddress, this.partyType);
 }
 
@@ -82,6 +83,20 @@ class _CreatePartyPageState extends State<CreatePartyPage> {
                       initialValue: widget.args.partName,
                       onSave: (e) {
                         _partyInput.name = e;
+                      },
+                      validator: (e) {
+                        if (e!.length <= 3) {
+                          return "Minimum 3 character";
+                        }
+                      },
+                    ),
+                    const Divider(color: Colors.transparent),
+                    CustomTextField(
+                      label: 'Guardian Name',
+                      isLoading: isLoading,
+                      initialValue: widget.args.guardianName,
+                      onSave: (e) {
+                        _partyInput.guardianName = e;
                       },
                       validator: (e) {
                         if (e!.length <= 3) {

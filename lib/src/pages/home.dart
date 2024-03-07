@@ -5,10 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:shopos/src/blocs/home/home_cubit.dart';
 import 'package:shopos/src/config/colors.dart';
 import 'package:shopos/src/pages/AboutOptionPage.dart';
-import 'package:shopos/src/pages/CreateSalesReturn.dart';
 import 'package:shopos/src/pages/SwitchAccountPage.dart';
 import 'package:shopos/src/pages/checkout.dart';
-import 'package:shopos/src/pages/create_purchase.dart';
 import 'package:shopos/src/pages/create_sale.dart';
 import 'package:shopos/src/pages/expense.dart';
 import 'package:shopos/src/pages/party_list.dart';
@@ -24,7 +22,6 @@ import 'package:shopos/src/widgets/custom_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/pin_validation.dart';
-import 'create_estimate.dart';
 import 'online_order_list.dart';
 
 class HomePage extends StatefulWidget {
@@ -125,39 +122,29 @@ class _HomePageState extends State<HomePage> {
                               context, SwitchAccountPage.rountName); //
                         },
                       ),
-                      Divider(
-                        color: Colors.transparent,
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          "assets/images/calcicon3.jpeg",
-                          height: 38,
-                        ),
-                        title: Title(color: Colors.black, child: Text("Estimates")),
-                        onTap: () async {
-                          Navigator.of(context).pushNamed(CreateEstimate.routeName);
-                        },
-                      ),
-                      Divider(
-                        color: Colors.transparent,
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          "assets/icon/preferences_icon.png",
-                          height: 28,
-                        ),
-                        title: Title(color: Colors.black, child: Text("Preferences")),
-                        onTap: () async {
-                          var result = true;
-
-                          if (await _pinService.pinStatus() == true) {
-                            result = await PinValidation.showPinDialog(context) as bool;
-                          }
-                          if(result){
-                            Navigator.of(context).pushNamed(DefaultPreferences.routeName);
-                          }
-                        },
-                      ),
+                      // Divider(
+                      //   color: Colors.transparent,
+                      // ),
+                      // Divider(
+                      //   color: Colors.transparent,
+                      // ),
+                      // ListTile(
+                      //   leading: Image.asset(
+                      //     "assets/icon/preferences_icon.png",
+                      //     height: 28,
+                      //   ),
+                      //   title: Title(color: Colors.black, child: Text("Preferences")),
+                      //   onTap: () async {
+                      //     var result = true;
+                      //
+                      //     if (await _pinService.pinStatus() == true) {
+                      //       result = await PinValidation.showPinDialog(context) as bool;
+                      //     }
+                      //     if(result){
+                      //       Navigator.of(context).pushNamed(DefaultPreferences.routeName);
+                      //     }
+                      //   },
+                      // ),
                       Divider(
                         color: Colors.transparent,
                       ),
@@ -261,16 +248,17 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         HomeCard(
                           color: 0XFF48AFFF,
-                          icon: 'assets/images/products.png',
-                          title: "Products",
+                          icon: 'assets/images/Plans.png',
+                          decreaseSizeOfIcon: 18,
+                          title: "Plans",
                           onTap: () {
                             Navigator.pushNamed(
                               context,
                               SearchProductListScreen.routeName,
-                              arguments: ProductListPageArgs(
-                                  isSelecting: false,
+                              arguments: PlanListPageArgs(
+                              isSelecting: false,
                                   orderType: OrderType.none,
-                                  productlist: []),
+                                  membershipPlanList: []),
                             );
                           },
                         ),
@@ -339,10 +327,10 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  CreatePurchase.routeName,
-                                );
+                                // Navigator.pushNamed(
+                                //   context,
+                                //   CreatePurchase.routeName,
+                                // );
                               },
                               child: Column(
                                 children: [
@@ -361,7 +349,7 @@ class _HomePageState extends State<HomePage> {
                                     child: Padding(
                                         padding: const EdgeInsets.all(8),
                                         child: Image.asset(
-                                          "assets/images/purchase.png",
+                                          "assets/images/planning.png",
                                           height: 110,
                                           width: 210,
                                         )),
@@ -376,13 +364,13 @@ class _HomePageState extends State<HomePage> {
                             SizedBox(width: 120,),
                             GestureDetector(
                               onTap: () {
-                                Navigator.pushNamed(context, CreateSale.routeName,
-                                    arguments: BillingPageArgs(editOrders: []));
-                              },
-                              onLongPress: () {
+                                // Navigator.pushNamed(context, CreateSale.routeName,
+                                //     arguments: BillingPageArgs(
+                                //         editOrders: []));
                                 Navigator.pushNamed(
                                   context,
-                                  CreateSaleReturn.routeName,
+                                  SearchProductListScreen.routeName,
+                                  arguments: PlanListPageArgs(isSelecting: true, orderType: OrderType.sale, membershipPlanList: []),
                                 );
                               },
                               child: Column(
@@ -493,12 +481,15 @@ class HomeCard extends StatelessWidget {
   final VoidCallback onTap;
   final String title;
   final int color;
+  final double? decreaseSizeOfIcon;
+
   const HomeCard({
     Key? key,
     required this.icon,
     required this.title,
     required this.color,
     required this.onTap,
+    this.decreaseSizeOfIcon = 0,
   }) : super(key: key);
 
   @override

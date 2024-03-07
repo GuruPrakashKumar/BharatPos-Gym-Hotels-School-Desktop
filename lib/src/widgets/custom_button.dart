@@ -12,6 +12,8 @@ class CustomButton extends StatelessWidget {
   final TextStyle? style;
   final double? paddingOutside;
   final ButtonType type;
+  final double? fontSize;
+  final double? minimumWidth;
   const CustomButton({
     Key? key,
     required this.title,
@@ -21,7 +23,9 @@ class CustomButton extends StatelessWidget {
     this.style,
     this.padding = const EdgeInsets.all(10),
     this.type = ButtonType.normal,
-    this.paddingOutside = 20.0
+    this.paddingOutside = 20.0,
+    this.fontSize = 30,
+    this.minimumWidth = 300
   }) : super(key: key);
 
   @override
@@ -42,7 +46,7 @@ class CustomButton extends StatelessWidget {
                 padding: padding,
               )
             : TextButton.styleFrom(
-                minimumSize: Size(300, 60),
+                minimumSize: Size(minimumWidth!, 60),
                 backgroundColor:
                     isDisabled ? Colors.green : ColorsConst.primaryColor,
                 shape: RoundedRectangleBorder(
@@ -63,7 +67,7 @@ class CustomButton extends StatelessWidget {
                             ? Colors.white
                             : ColorsConst.primaryColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 30)),
+                        fontSize: fontSize)),
       ),
     );
   }

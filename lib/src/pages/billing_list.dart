@@ -12,7 +12,6 @@ import 'package:shopos/src/models/input/order.dart';
 import 'package:shopos/src/models/user.dart';
 
 import 'package:shopos/src/pages/checkout.dart';
-import 'package:shopos/src/pages/create_purchase.dart';
 import 'package:shopos/src/pages/create_sale.dart';
 import 'package:shopos/src/pages/home.dart';
 import 'package:shopos/src/provider/billing.dart';
@@ -755,14 +754,8 @@ class _BillingListScreenState extends State<BillingListScreen> {
                                               arguments: BillingPageArgs(
                                                   editOrders: _allBills[index]
                                                       .orderItems,
-                                                  kotId: _allBills[index].kotId,
-                                                  tableNo: _allBills[index].tableNo))
-                                              : await Navigator.pushNamed(
-                                              context, CreatePurchase.routeName,
-                                              arguments: BillingPageArgs(
-                                                  editOrders: provider.purchaseBilling.values
-                                                      .toList()[index]
-                                                      .orderItems));
+                                                  kotId: _allBills[index].kotId,))
+                                              : print("nothing happend");
 
                                           // var data = await DatabaseHelper().getOrderItems();
                                           //

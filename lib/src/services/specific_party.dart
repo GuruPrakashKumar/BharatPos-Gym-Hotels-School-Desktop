@@ -4,11 +4,28 @@ import 'package:shopos/src/models/input/order.dart';
 import 'package:shopos/src/models/party.dart';
 import 'package:shopos/src/services/api_v1.dart';
 
+import '../models/activeMembership_model.dart';
+
 class SpecificPartyService {
   ///
 
+  Future<List<ActiveMembershipModel>> getActiveMembership(String id) async {
+    final response = await ApiV1Service.getRequest('/membership/all/$id');
+    print("response.data['plans'] is ${response.data['plans']}");
+    return (response.data['plans'] as List)
+        .map((e)=> ActiveMembershipModel.fromMap(e as Map<String, dynamic>)).toList();
+  }
+
+  ///
   Future<List<Order>> getSalesCreditHistory(String id) async {
+    print("--line 11 in specific party");
+    print(id);
     final response = await ApiV1Service.getRequest('/sales/credit-history/$id');
+    print("CreditData");
+    print(response.data);
+    print("----");
+
+
     return (response.data['data'] as List)
         .map((e) => Order.fromMapForParty(e as Map<String, dynamic>))
         .toList();
@@ -17,7 +34,7 @@ class SpecificPartyService {
   ///
   Future<List<Order>> getpurchaseCreditHistory(String id) async {
     final response =
-        await ApiV1Service.getRequest('/purchase/credit-history/$id');
+    await ApiV1Service.getRequest('/purchase/credit-history/$id');
     return (response.data['data'] as List)
         .map((e) => Order.fromMap(e as Map<String, dynamic>))
         .toList();
@@ -25,6 +42,7 @@ class SpecificPartyService {
 
   ///
   Future<Response> updateSalesCredit(Party party) async {
+    print("line 37 in specific party");
     return await ApiV1Service.postRequest(
       '/sales/credit-history/${party.id}',
       data: party.toMap(),
@@ -42,14 +60,15 @@ class SpecificPartyService {
   ///
   Future<Party> getCreditPurchaseParty(String id) async {
     final response =
-        await ApiV1Service.getRequest('/party/purchase/credit/$id');
+    await ApiV1Service.getRequest('/party/purchase/credit/$id');
     return Party.fromMap(response.data['data'] as Map<String, dynamic>);
   }
 
   ///
   Future<Party> getCreditSaleParty(String id) async {
+    print("line 60 in specific party");
     final response = await ApiV1Service.getRequest('/party/sale/credit/$id');
-    // print(response.toString());
+    print("line 62 in specific party");
     return Party.fromMap(response.data['data'] as Map<String, dynamic>);
   }
 
@@ -63,6 +82,9 @@ class SpecificPartyService {
 
   ///
   Future<Response> updateSaleAmount(String id, double total) async {
+    print("party edit:");
+    print(id);
+    print(total);
     return await ApiV1Service.putRequest(
       '/upd/salesOrder/${id}',
       data: {"total": total},

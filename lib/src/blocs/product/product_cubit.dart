@@ -5,11 +5,14 @@ import 'package:shopos/src/models/input/product_input.dart';
 import 'package:shopos/src/models/product.dart';
 import 'package:shopos/src/services/product.dart';
 
+import '../../models/input/membershipPlanInput.dart';
+import '../../models/membershipPlan_model.dart';
+
 part 'product_state.dart';
 
-class ProductCubit extends Cubit<ProductState> {
+class MembershipCubit extends Cubit<MembershipState> {
   final ProductService _productService = const ProductService();
-  ProductCubit() : super(ProductInitial());
+  MembershipCubit() : super(MembershipInitial());
 
   ///
 /*  void getProducts(int i) async {
@@ -31,77 +34,83 @@ class ProductCubit extends Cubit<ProductState> {
 
     emit(ProductsListRender(products));
   }*/
-  getProducts(int page, int limit) async {
-    emit(ProductLoading());
-    final response = await _productService.getProducts(page, limit);
+  getPlan(String id) async {
+    emit(MembershipLoading());
+    final response = await _productService.getPlan(id);
     if ((response.statusCode ?? 400) > 300) {
-      emit(ProductsError('Failed to get products'));
+      emit(MembershipError('Failed to get products'));
+      return;
+    }
+    MembershipPlanModel membershipPlan = MembershipPlanModel.fromMap(response.data['membership']);
+    return membershipPlan;
+  }
+
+  getAllPlans() async {
+    emit(MembershipLoading());
+    final response = await _productService.getAllPlans();
+    // print("response.data iiis ${response.data['allPlans']}");
+    if ((response.statusCode ?? 400) > 300) {
+      emit(MembershipError('Failed to get products'));
       return;
     }
 
-    final products = List.generate(
-      response.data['inventories'].length,
-      (int index) => Product.fromMap(response.data['inventories'][index]),
+    final plans = List.generate(
+      response.data['allPlans'].length,
+          (int index) => MembershipPlanModel.fromMap(response.data['allPlans'][index]),
     );
 
-    emit(ProductsListRender(products));
+    emit(MembershipListRender(plans));
   }
 
   ///
   void searchProducts(String pattern) async {
-    emit(ProductLoading());
+    emit(MembershipLoading());
     try {
       final response = await _productService.searchProducts(pattern);
-      final data = response.data['inventories'];
+      final data = response.data['allPlans'];
       final prods = List.generate(data.length, (int index) {
-        return Product.fromMap(data[index]);
+        return MembershipPlanModel.fromMap(data[index]);
       });
-      emit(ProductsListRender(prods));
+      emit(MembershipListRender(prods));
     } on DioError {
-      emit(ProductsError('Failed to get products'));
+      emit(MembershipError('Failed to get products'));
     }
   }
 
+
+
   ///
-  ///
-  bool isNumeric(String str) {
-  // Use tryParse to attempt to convert the string to a number
-  // If successful, it's a valid number; otherwise, it's not
-  return num.tryParse(str) != null;
-}
-  void createProduct(ProductFormInput product) async {
-
-
-
-    emit(ProductLoading());
+  void createPlan(MembershipPlanInput input) async {
+    emit(MembershipLoading());
     try {
-      // print(product.id);
-      final response = product.id == null
-          ? await _productService.createProduct(product)
-          : await _productService.updateProduct(product);
+      final response = input.id == null
+          ? await _productService.createPlan(input)
+          : await _productService.updatePlan(input);
       print(response);
       if ((response.statusCode ?? 400) > 300) {
-        emit(ProductsError(response.data['message']));
+        emit(MembershipError(response.data['message']));
         return;
       }
-      emit(ProductCreated());
+      emit(MembershipCreated());
     } on DioError catch (err) {
-      emit(ProductsError(err.response?.data['message'] ?? err.message));
+      // print("printing error");
+      // print(err.response);
+      emit(MembershipError(err.response?.data['message'] ?? err.message));
     }
   }
 
   ///
-  void deleteProduct(Product product, int page, int limit) async {
+  void deletePlan(MembershipPlanModel plan) async {
     try {
-      final response = await _productService.deleteProduct(product);
+      final response = await _productService.deletePlan(plan);
       if ((response.statusCode ?? 400) > 300) {
-        emit(ProductsError(response.data['message']));
+        emit(MembershipError(response.data['message']));
         return;
       }
     } on DioError catch (err) {
-      emit(ProductsError(err.message.toString()));
+      emit(MembershipError(err.message.toString()));
     }
-    getProducts(page, limit);
+    getAllPlans();
   }
 
   ///

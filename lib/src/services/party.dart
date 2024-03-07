@@ -15,6 +15,10 @@ class PartyService {
     return await ApiV1Service.getRequest('/party/me');
   }
 
+  Future<Response> getAllDues() async {
+    print("getting all dues");
+    return await ApiV1Service.postRequest('/membership/allDues');
+  }
   /// Get all parties
   Future<Response> getSearch(String searchQuery, {String? type}) async {
     final params = {

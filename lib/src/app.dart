@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shopos/src/models/user.dart';
 import 'package:shopos/src/pages/AboutOptionPage.dart';
-import 'package:shopos/src/pages/CreateSalesReturn.dart';
 import 'package:shopos/src/pages/SwitchAccountPage.dart';
 import 'package:shopos/src/pages/billing_list.dart';
 import 'package:shopos/src/pages/change_password.dart';
 import 'package:shopos/src/pages/checkout.dart';
-import 'package:shopos/src/pages/create_estimate.dart';
 import 'package:shopos/src/pages/create_expense.dart';
 import 'package:shopos/src/pages/create_party.dart';
 import 'package:shopos/src/pages/create_product.dart';
-import 'package:shopos/src/pages/create_purchase.dart';
 import 'package:shopos/src/pages/create_sale.dart';
 import 'package:shopos/src/pages/expense.dart';
 import 'package:shopos/src/pages/home.dart';
@@ -79,13 +76,13 @@ class MyApp extends StatelessWidget {
                 return ProductsListPage(
                   args: settings.arguments as ProductListPageArgs?,
                 );*/
-              case CreateProduct.routeName:
-                return CreateProduct(args: settings.arguments as CreateProductArgs);
+              case CreatePlan.routeName:
+                return CreatePlan(args: settings.arguments as CreatePlanArgs);
 
               case PartyListPage.routeName:
                 return const PartyListPage();
               case SearchProductListScreen.routeName:
-                return SearchProductListScreen(  args: settings.arguments as ProductListPageArgs);
+                return SearchProductListScreen(  args: settings.arguments as PlanListPageArgs);
 
            case AboutOptionPage.routeName:
                 return AboutOptionPage();
@@ -106,19 +103,10 @@ class MyApp extends StatelessWidget {
                 return CreateSale(
                   args: settings.arguments as BillingPageArgs?,
                 );
-              case CreateEstimate.routeName:
-                return CreateEstimate(
-                  args: settings.arguments as EstimateBillingPageArgs?,
-                );
-              case CreatePurchase.routeName:
-                return CreatePurchase(
-                    args: settings.arguments as BillingPageArgs?);
               case CheckoutPage.routeName:
                 return CheckoutPage(
                   args: settings.arguments as CheckoutPageArgs,
                 );
-                 case CreateSaleReturn.routeName:
-                return CreateSaleReturn();
                  case SwitchAccountPage.rountName:
                 return SwitchAccountPage();
               case PartyCreditPage.routeName:
