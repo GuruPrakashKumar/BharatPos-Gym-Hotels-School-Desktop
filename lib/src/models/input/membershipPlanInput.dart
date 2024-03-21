@@ -11,7 +11,8 @@ class MembershipPlanInput{
     this.sgst,
     this.igst,
     this.id,
-    this.gst = false
+    this.gst = false,
+    this.subscription_type
   });
   String? id;
   String? user;
@@ -19,6 +20,7 @@ class MembershipPlanInput{
   String? validity;
   String? basePrice;
   String? sellingPrice;
+  String? subscription_type;
   bool gst;
   bool? GSTincluded;
   String? gstRate;
@@ -32,8 +34,9 @@ class MembershipPlanInput{
       "plan": plan,
       "validity": validity,
       "sellingPrice": sellingPrice,
+      "subscription_type": subscription_type,
       if(gst) "basePrice": basePrice,
-      "GSTincluded": GSTincluded,
+      if(gst) "GSTincluded": GSTincluded,
       if(gst) "GSTRate": gstRate,
       if(gst) "CGST": cgst,
       if(gst) "SGST": sgst,
@@ -46,6 +49,7 @@ class MembershipPlanInput{
       id: map['_id'],
       user: map['user'],
       plan: map['plan'],
+      subscription_type: map['subscription_type'],
       validity: map['validity'].toString(),
       basePrice: map['basePrice'].toString(),
       sellingPrice: map['sellingPrice'].toString(),

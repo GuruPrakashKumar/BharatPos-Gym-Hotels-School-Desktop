@@ -59,6 +59,9 @@ class _CreatePlanState extends State<CreatePlan> {
   final SearchProductServices searchProductServices = SearchProductServices();
   int includedExcludedRadioButton = 1;
   String additionalInformation = "";
+  // bool subscriptionTypeSwitch = false;
+  int subscriptionTypeRadioButton = 1;
+
 
   ///
   @override
@@ -101,6 +104,12 @@ class _CreatePlanState extends State<CreatePlan> {
     setState(() {
       _formInput = membershipInput!;
     });
+    if(_formInput.subscription_type != "null")
+      if(_formInput.subscription_type == "postpaid"){
+        subscriptionTypeRadioButton = 1;
+      }else{
+        subscriptionTypeRadioButton = 2;
+      }
 
     if (_formInput.GSTincluded != null) if (_formInput.GSTincluded!) {
       includedExcludedRadioButton = 1;
@@ -199,7 +208,7 @@ class _CreatePlanState extends State<CreatePlan> {
             child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     CustomTextField(
                       label: "Plan Name",
@@ -242,6 +251,35 @@ class _CreatePlanState extends State<CreatePlan> {
                           return null;
                         },
                       ),
+                    ),
+                    const Divider(color: Colors.transparent),
+                    Row(
+                      children: [
+                        RadioMenuButton(
+                            value: 1,
+                            groupValue: subscriptionTypeRadioButton,
+                            onChanged: (val) {
+                              subscriptionTypeRadioButton = 1;
+                              if(subscriptionTypeRadioButton == 1){
+                                _formInput.subscription_type = "postpaid";
+                              }
+                              print("radio button 1");
+                              setState(() {});
+                            },
+                            child: Text("Postpaid")),
+                        RadioMenuButton(
+                            value: 2,
+                            groupValue: subscriptionTypeRadioButton,
+                            onChanged: (val) {
+                              print("radio button 2");
+                              subscriptionTypeRadioButton = 2;
+                              if(subscriptionTypeRadioButton == 2){
+                                _formInput.subscription_type = "prepaid";
+                              }
+                              setState(() {});
+                            },
+                            child: Text("Prepaid"))
+                      ],
                     ),
                     const Divider(color: Colors.transparent),
                     Row(
@@ -409,6 +447,7 @@ class _CreatePlanState extends State<CreatePlan> {
                               _formInput.plan = "${_formInput.plan} $additionalInformation";
                               print("gstswitch is $gstSwitch includedExcludedRadioButton is $includedExcludedRadioButton and _form.gstincluded is ${_formInput.GSTincluded}");
                               if(gstSwitch && includedExcludedRadioButton==1) _formInput.GSTincluded = true;
+                              if(subscriptionTypeRadioButton==1) _formInput.subscription_type="postpaid";
 
                               _productCubit.createPlan(_formInput);
                               Navigator.pop(context);

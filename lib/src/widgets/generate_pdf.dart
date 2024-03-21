@@ -180,7 +180,7 @@ Future<void> generatePdf({
             ? Container(
                 width: 50,
                 child: pw.Text(
-                    '${(data.membership?.sellingPrice ?? 0)}',
+                    '${(data.membership?.sellingPrice?.toStringAsFixed(2) ?? 0)}',
                     style: TextStyle(fontSize: 10)))
             : Container(
                 width: 50,
@@ -374,7 +374,7 @@ Future<void> generatePdf({
               SizedBox(width: 10),
               gstType == 'WithoutGST'
                   ? Container()
-                  : Container(width: 50, child: pw.Text('GST/Unit')),
+                  : Container(width: 50, child: pw.Text('GST')),
             ]
           ),
           SizedBox(width: 40),
@@ -411,6 +411,7 @@ Future<void> generatePdf({
                       style: TextStyle(font: ttf, fontSize: 10)))
         ]),
 
+        if(atLeastOneItemHaveGST)
         pw.Row(mainAxisAlignment: MainAxisAlignment.end, children: [
           pw.Text('GST Total:       ',
               style: TextStyle(

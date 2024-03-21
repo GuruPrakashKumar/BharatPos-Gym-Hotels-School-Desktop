@@ -321,7 +321,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
               popAll ? SizedBox(height: 20,): SizedBox.shrink(),
               popAll ? Text("$successMsg",style: TextStyle(fontSize: 20),): SizedBox.shrink(),
               popAll ? SizedBox(height: 60,): SizedBox(height: 20,),
-              Row(
+              if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true)
+                Row(
                 children: [
                   Expanded(
                     child: CustomButton(
@@ -548,8 +549,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   ///
   _viewPdfwithoutgst(User user, bool popAll) async {
-    includePayments(false);
-    calculate();
+    if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true){
+      includePayments(false);
+      calculate();
+    }
     // final targetPath = await getExternalCacheDirectories();
     // const targetFileName = "Invoice";
     // final htmlContent = invoiceTemplatewithouGST(
@@ -565,7 +568,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     // Navigator.of(context)
     //     .pushNamed(ShowPdfScreen.routeName, arguments: htmlContent);
     var headerList = ["Plan name","Validity (days)", "Taxable value", "GST", "Amount"];
-    print(totalbasePrice().toString() + "+" + totalgstPrice().toString());
+    // print(totalbasePrice().toString() + "+" + totalgstPrice().toString());
     salesInvoiceNo = await _checkoutCubit.getSalesNum() as int;
     purchasesInvoiceNo = await _checkoutCubit.getPurchasesNum() as int;
     estimateNo = await _checkoutCubit.getEstimateNum() as int;
@@ -1276,7 +1279,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                           if(widget.args.payDue==false)
                                             const Divider(color: Colors.transparent, height: 30),
                                           if (widget.args.invoiceType != OrderType.saleReturn)
-                                            Column(
+                                            if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true)
+                                              Column(
                                               children: [
                                                 Row(
                                                   children: [
@@ -1617,10 +1621,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
     _formKey.currentState?.save();
     if (_formKey.currentState?.validate() ?? false) {
 
-      bool paymentValidation = includePayments(true);
-
-      if(paymentValidation)
-        calculate();
+      bool paymentValidation = true;
+      if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true){
+        paymentValidation = includePayments(true);
+        if(paymentValidation)
+          calculate();
+      }
 
       salesInvoiceNo = await _checkoutCubit.getSalesNum() as int;
 
@@ -1664,8 +1670,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
             "%0A%09%09%09${items[i].membership.plan.substring(
                 0, 4)}%09%09%20%09%09%09${items[i]
                 .quantity}%09%09%09%09%09%09${items[i].membership
-                .sellingPrice}%09%09%09%09%09%09%09${items[i].membership
-                .sellingPrice * items[i].quantity}";
+                .sellingPrice.toStringAsFixed(2)}%09%09%09%09%09%09%09${items[i].membership
+                .sellingPrice.toStringAsFixed(2)}";
         x = x + "%0A%09%09%09${items[i].membership.plan.substring(4)}";
       }
     }

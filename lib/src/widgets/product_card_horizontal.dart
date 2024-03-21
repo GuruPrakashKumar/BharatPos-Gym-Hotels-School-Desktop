@@ -136,6 +136,18 @@ class _ProductCardHorizontalState extends State<ProductCardHorizontal> {
                         ],
                       ),
 
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Type'),
+                          Text(
+                            ' ${widget.membership.subscription_type}',
+                            maxLines: 1,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
                       Visibility(
                         visible: widget.membership.validity != null,
                         child: Row(
