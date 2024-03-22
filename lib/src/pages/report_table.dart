@@ -1280,17 +1280,17 @@ class _ReportTableState extends State<ReportTable> {
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              if (widget.args.type == "ReportType.sale")
-                PopupMenuItem<String>(
-                  value: 'Kot history',
-                  child: Row(
-                    children: <Widget>[
-                      Icon(Icons.print),
-                      SizedBox(width: 8),
-                      Text('Kot history'),
-                    ],
-                  ),
-                ),
+              // if (widget.args.type == "ReportType.sale")
+              //   PopupMenuItem<String>(
+              //     value: 'Kot history',
+              //     child: Row(
+              //       children: <Widget>[
+              //         Icon(Icons.print),
+              //         SizedBox(width: 8),
+              //         Text('Kot history'),
+              //       ],
+              //     ),
+              //   ),
               if (widget.args.type == "ReportType.estimate" || widget.args.type == "ReportType.sale")
                 PopupMenuItem<String>(
                   value: 'edit',
