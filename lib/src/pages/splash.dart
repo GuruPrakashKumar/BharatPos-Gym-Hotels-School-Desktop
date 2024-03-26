@@ -23,18 +23,19 @@ class SplashScreen extends StatefulWidget {
 }
 class _SplashScreenState extends State<SplashScreen> {
   late String _latestVersion = '';
-  late String _currentVersion = '';
+  String _currentVersion = '1.0.1';
   ///
   @override
   void initState() {
     super.initState();
-    getVersion();
+    // getVersion();
     checkForUpdates();
     // authStatus();
  //   getDataFromDatabase();
   }
 
   Future<void> _launchURL() async {
+    //todo: change website url for this app
     final Uri _url = Uri.parse(
         'https://bharatpos.xyz');
 
@@ -46,26 +47,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   }
 
-  Future<void> getVersion() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    _currentVersion = packageInfo.version;
-    print("version: = $_currentVersion");
-  }
 
   Future<void> checkForUpdates() async {
     try {
-      final response = await ApiV1Service.getRequest('/version/latest');
+      final response = await ApiV1Service.getRequest('/version/latest/bharatPos-subscriptions');
 
       if (response.statusCode == 200) {
-        print("response.statuscode = ${response.statusCode}");
-
-
         _latestVersion = response.data['data']['version'];
         print("latestVersion: = $_latestVersion");
         if(_currentVersion != _latestVersion){
-          // downloadUpdate();
-          // _updateAvailable = true;
-          print("download");
           alertUpdate();
         }
         else{
