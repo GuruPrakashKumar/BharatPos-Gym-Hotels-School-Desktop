@@ -76,7 +76,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   late final TextEditingController _typeAheadController;
   bool isBillTo = false;
   String date = '';
-  bool _isLoading = false;
+  bool _isLoading = false; //used for preventing submit button
   bool _isUPI = false;
   bool _isCash = false;
   bool _isCredit = false;
@@ -1533,8 +1533,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               .headline6
                               ?.copyWith(color: Colors.white, fontSize: 18),
                           title: "Submit",
-                          onTap: (){
-                            _onTapSubmit();
+                          onTap: () async {
+                            if(!_isLoading){//for preventing double tap issue
+                              _isLoading = true;
+                              await _onTapSubmit();
+                              _isLoading = false;
+                            }
                           }),
                     ),
                   ),
@@ -1570,8 +1574,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   if(!convertToSale)
                     Expanded(
                       child: CustomButton(
-                          onTap: () {
-                            _onTapSubmit();
+                          onTap: () async {
+                            if(!_isLoading){//for preventing double tap issue
+                              _isLoading = true;
+                              await _onTapSubmit();
+                              _isLoading = false;
+                            }
                           },
                           title: 'Save',
                           style: Theme.of(context)
@@ -1617,7 +1625,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return true;
   }
 
-  void _onTapSubmit() async {
+  _onTapSubmit() async {
     _formKey.currentState?.save();
     if (_formKey.currentState?.validate() ?? false) {
 
